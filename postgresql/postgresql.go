@@ -14,10 +14,8 @@ type IConnection interface {
 	Pool()
 	Migration(migrationDirectory string)
 	GetDbInstance() *sql.DB
-	SetDb(db *sql.DB) IConnection
 	Begin() (err error)
 	GetTx() *sql.Tx
-	SetTX(tx *sql.Tx) IConnection
 	Commit() (err error)
 	RollBack() (err error)
 }
@@ -68,11 +66,6 @@ func (c *Connection) GetDbInstance() *sql.DB {
 	return c.db
 }
 
-func (c *Connection) SetDb(db *sql.DB) IConnection {
-	c.db = db
-
-	return c
-}
 
 func (c *Connection) Begin() (err error) {
 	c.tx, err = c.db.Begin()
@@ -82,11 +75,6 @@ func (c *Connection) Begin() (err error) {
 
 func (c *Connection) GetTx() *sql.Tx {
 	return c.tx
-}
-
-func (c *Connection) SetTX(tx *sql.Tx) IConnection {
-	c.tx = tx
-	return c
 }
 
 func (c *Connection) Commit() (err error) {

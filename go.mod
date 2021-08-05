@@ -1,4 +1,4 @@
-module pkg
+module github.com/thel5coder/pkg
 
 go 1.14
 

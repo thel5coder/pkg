@@ -64,6 +64,7 @@ func (c *Config) DBMAxIdleConnection() int {
 	return c.dBMAxIdleConnection
 }
 
+// DBMaxLifeTimeConnection get db max life time connection
 func (c *Config) DBMaxLifeTimeConnection() int {
 	return c.dBMaxLifeTimeConnection
 }

@@ -30,7 +30,7 @@ func (model minioModel) Upload(bucketName,path string, fileHeader *multipart.Fil
 		return res, err
 	}
 	contentType := fileHeader.Header.Get("Content-Type")
-	src.Close()
+	defer src.Close()
 
 	_, err = model.Client.PutObject(context.Background(), bucketName, path, src, fileHeader.Size, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {

@@ -10,7 +10,7 @@ type IConnection interface {
 	SetSecretKey(secretKey string) IConnection
 	SetUseSsl(ssl bool) IConnection
 	SetEndPoint(endPoint string) IConnection
-	Connect() (err error)
+	Connect() (IConnection, error)
 	GetClient() *minio.Client
 }
 
@@ -51,16 +51,17 @@ func (c *Connection) SetEndPoint(endPoint string) IConnection {
 	return c
 }
 
-func (c *Connection) Connect() (err error) {
+func (c *Connection) Connect() (IConnection, error) {
+	var err error
 	c.client, err = minio.New(c.endPoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(c.accessKey, c.secretKey, ""),
 		Secure: c.useSSL,
 	})
 	if err != nil {
-		return err
+		return c, err
 	}
 
-	return nil
+	return c, nil
 }
 
 func (c *Connection) GetClient() *minio.Client {

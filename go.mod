@@ -16,6 +16,7 @@ require (
 	github.com/lestrrat/go-jwx v0.0.0-20210302221443-a9d01c1b7121
 	github.com/lestrrat/go-pdebug v0.0.0-20180220043741-569c97477ae8 // indirect
 	github.com/lib/pq v1.10.2
+	github.com/minio/minio-go/v7 v7.0.12
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
 	github.com/sirupsen/logrus v1.8.1
 	github.com/streadway/amqp v1.0.0

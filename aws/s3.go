@@ -13,18 +13,30 @@ import (
 	"time"
 )
 
-type S3Credential struct {
+type IS3 interface {
+	UploadManager(fileToBeUploaded *multipart.FileHeader) (res string, err error)
+
+	GetURL(key string) (res string, err error)
+
+	UploadManagerBufferWithSession(session *awsSession.Session, buffer []byte, fileName string) (res string, err error)
+
+	GetURLWithSession(session *awsSession.Session, key string) (res string, err error)
+
+	IsExistWithSession(session *awsSession.Session, key string) (bool, error)
+}
+
+type S3 struct {
 	AWSConfig aws.Config
-	Bucket    string
-	Directory string
-	AccessKey string
-	SecretKey string
+	bucket    string
+	directory string
+	accessKey string
+	secretKey string
 }
 
 //function s3 upload manager to s3 storage
-func (s3Cred S3Credential) UploadManager(fileToBeUploaded *multipart.FileHeader) (res string, err error) {
+func (s3Op S3) UploadManager(fileToBeUploaded *multipart.FileHeader) (res string, err error) {
 	//initialization aws session
-	session, err := awsSession.NewSession(&s3Cred.AWSConfig)
+	session, err := awsSession.NewSession(&s3Op.AWSConfig)
 	if err != nil {
 		return res, err
 	}
@@ -40,13 +52,13 @@ func (s3Cred S3Credential) UploadManager(fileToBeUploaded *multipart.FileHeader)
 	buffer := make([]byte, size)
 	file.Read(buffer)
 	fileName := bson.NewObjectId().Hex() + filepath.Ext(fileToBeUploaded.Filename)
-	res = s3Cred.Directory + "/" + fileName
+	res = s3Op.directory + "/" + fileName
 
 	//put file to s3 storage
 	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
 		ACL:                aws.String("public-read"),
 		Body:               bytes.NewReader(buffer),
-		Bucket:             aws.String(s3Cred.Bucket),
+		Bucket:             aws.String(s3Op.bucket),
 		ContentDisposition: aws.String("attachment"),
 		ContentLength:      aws.Int64(int64(size)),
 		ContentType:        aws.String(http.DetectContentType(buffer)),
@@ -60,9 +72,9 @@ func (s3Cred S3Credential) UploadManager(fileToBeUploaded *multipart.FileHeader)
 }
 
 //function to get pre-signed url from S3, pre-signed url is encrypted url from s3 that present our file in s3
-func (s3Cred *S3Credential) GetURL(key string) (res string, err error) {
+func (s3Op *S3) GetURL(key string) (res string, err error) {
 	//initialization aws session
-	sess, err := awsSession.NewSession(&s3Cred.AWSConfig)
+	sess, err := awsSession.NewSession(&s3Op.AWSConfig)
 	if err != nil {
 		return res, err
 	}
@@ -70,7 +82,7 @@ func (s3Cred *S3Credential) GetURL(key string) (res string, err error) {
 	//open aws session to get pre-signed url from url
 	svc := s3.New(sess)
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(s3Cred.Bucket),
+		Bucket: aws.String(s3Op.bucket),
 		Key:    aws.String(key),
 	})
 
@@ -80,15 +92,15 @@ func (s3Cred *S3Credential) GetURL(key string) (res string, err error) {
 	return res, err
 }
 
-func (s3Cred S3Credential) UploadManagerBufferWithSession(session *awsSession.Session, buffer []byte, fileName string) (res string, err error) {
+func (s3Op S3) UploadManagerBufferWithSession(session *awsSession.Session, buffer []byte, fileName string) (res string, err error) {
 	//get file size to set content, and rename file name.for setting in s3 putObjectInput struct
-	bucketFilePath := s3Cred.Directory + "/" + fileName
+	bucketFilePath := s3Op.directory + "/" + fileName
 
 	//put file to s3 storage
 	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
 		ACL:                aws.String("public-read"),
 		Body:               bytes.NewReader(buffer),
-		Bucket:             aws.String(s3Cred.Bucket),
+		Bucket:             aws.String(s3Op.bucket),
 		ContentDisposition: aws.String("attachment"),
 		ContentLength:      aws.Int64(int64(len(buffer))),
 		ContentType:        aws.String(http.DetectContentType(buffer)),
@@ -102,11 +114,11 @@ func (s3Cred S3Credential) UploadManagerBufferWithSession(session *awsSession.Se
 	return res, err
 }
 
-func (s3Cred *S3Credential) GetURLWithSession(session *awsSession.Session, key string) (res string, err error) {
+func (s3Op *S3) GetURLWithSession(session *awsSession.Session, key string) (res string, err error) {
 	// create svc
 	svc := s3.New(session)
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(s3Cred.Bucket),
+		Bucket: aws.String(s3Op.bucket),
 		Key:    aws.String(key),
 	})
 
@@ -116,9 +128,9 @@ func (s3Cred *S3Credential) GetURLWithSession(session *awsSession.Session, key s
 	return res, err
 }
 
-func (s3Cred *S3Credential) IsExistWithSession(session *awsSession.Session, key string) (bool, error) {
+func (s3Op *S3) IsExistWithSession(session *awsSession.Session, key string) (bool, error) {
 	_, err := s3.New(session).HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(s3Cred.Bucket),
+		Bucket: aws.String(s3Op.bucket),
 		Key:    aws.String(key),
 	})
 	if err != nil {

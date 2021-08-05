@@ -1,9 +1,9 @@
 package response
 
 import (
-	"booking-car/pkg/str"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/thel5coder/pkg/str"
 	"reflect"
 	"strings"
 )
